@@ -1,0 +1,46 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
+import time
+import re
+#Add the PATH to the location of your chromedriver here
+
+#string1 is your origin point, string2 is your destination, n is the number you divide your road trip by
+#string1 and string2 must be addresses that Google Maps understands. n must be an integer from 2-9, inclusive
+def straightLineTrip(n, string1, string2):
+    driver = webdriver.Chrome()
+    driver.get("https://google.com/maps")
+    addressButton = driver.find_element(By.ID, "searchboxinput")
+    addressButton.clear()
+    addressButton.send_keys(string1)
+    addressButton.send_keys(Keys.RETURN)
+    time.sleep(5)
+    string1URL = str(driver.current_url)
+    string1CoordinateUnformatted = re.findall("@[0-9|-][0-9.]+,[0-9|-][0-9.]+,", string1URL)
+    string1CoordinateFormatted = re.split("@|,", string1CoordinateUnformatted[0])
+    string1Latitude = float(string1CoordinateFormatted[1])
+    string1Longitude = float(string1CoordinateFormatted[2])
+    addressButton.clear()
+    addressButton.send_keys(string2)
+    addressButton.send_keys(Keys.RETURN)
+    time.sleep(5)
+    string2URL = str(driver.current_url)
+    string2CoordinateUnformatted = re.findall("@[0-9|-][0-9.]+,[0-9|-][0-9.]+,", string2URL)
+    string2CoordinateFormatted = re.split("@|,", string2CoordinateUnformatted[0])
+    string2Latitude = float(string2CoordinateFormatted[1])
+    string2Longitude = float(string2CoordinateFormatted[2])
+    LatitudeDifferences = (string2Latitude - string1Latitude) / n
+    LongitudeDifferences = (string2Longitude - string1Longitude) / n
+    LatitudeArray = [string1Latitude]
+    LongitudeArray = [string1Longitude]
+    for i in range(1, n + 1):
+        LatitudeArray.append(string1Latitude + (LatitudeDifferences * i))
+    for j in range(1, n + 1):
+        LongitudeArray.append(string1Longitude + (LongitudeDifferences * j))
+    finalURL = "https://www.google.com/maps/dir/"
+    for k in range(0, n + 1):
+        finalURL += str(LatitudeArray[k]) + ",+" + str(LongitudeArray[k]) + "/"
+    print(finalURL)
+    return finalURL
